@@ -9,21 +9,29 @@ import (
 var loggerSupportExtraFields = []string{"client_ip", "_id", "api"}
 
 var loggerInfo = log.Logger{
-	Level:  log.InfoLevel,
-	Writer: &log.FileWriter{Filename: "log/info.log", MaxSize: 70 << 20, MaxBackups: 60},
+	Level: log.InfoLevel,
+	Writer: &log.FileWriter{
+		Filename: "log/info.log", MaxSize: 70 << 20, MaxBackups: 60,
+		ProcessID: false,
+		HostName:  false,
+	},
 }
 
 var loggerWarn = log.Logger{
-	Level:  log.WarnLevel,
-	Writer: &log.FileWriter{Filename: "log/warn.log", MaxSize: 70 << 20, MaxBackups: 60},
+	Level: log.WarnLevel,
+	Writer: &log.FileWriter{
+		Filename: "log/warn.log", MaxSize: 70 << 20, MaxBackups: 60,
+		ProcessID: false,
+		HostName:  false,
+	},
 }
 
 var loggerError = log.Logger{
-	Level: log.InfoLevel,
-	Writer: &log.MultiWriter{
-		InfoWriter:    &log.FileWriter{Filename: "log/error.log", MaxSize: 70 << 20, MaxBackups: 60},
-		ConsoleWriter: &log.ConsoleWriter{ColorOutput: true},
-		ConsoleLevel:  log.ErrorLevel,
+	Level: log.ErrorLevel,
+	Writer: &log.FileWriter{
+		Filename: "log/error.log", MaxSize: 70 << 20, MaxBackups: 60,
+		ProcessID: false,
+		HostName:  false,
 	},
 }
 
@@ -31,7 +39,11 @@ var loggerError = log.Logger{
 var loggerDebug = log.Logger{
 	Level: log.DebugLevel,
 	Writer: &log.MultiWriter{
-		InfoWriter:    &log.FileWriter{Filename: "log/debug.log", MaxSize: 50 << 20, MaxBackups: 30},
+		InfoWriter: &log.FileWriter{
+			Filename: "log/debug.log", MaxSize: 50 << 20, MaxBackups: 30,
+			ProcessID: false,
+			HostName:  false,
+		},
 		ConsoleWriter: &log.ConsoleWriter{ColorOutput: false},
 		ConsoleLevel:  log.DebugLevel,
 	},
@@ -95,14 +107,3 @@ func F(msg string, params ...interface{}) {
 func D(msg string, params ...interface{}) {
 	loggerExtraFieldContext(loggerDebug.Debug(), msg, params...)
 }
-
-// func init() {
-// 	if log.IsTerminal(os.Stderr.Fd()) {
-// 		Logger.Caller = 1
-// 		Logger.Writer = &log.ConsoleWriter{
-// 			ColorOutput:    true,
-// 			QuoteString:    true,
-// 			EndWithMessage: true,
-// 		}
-// 	}
-// }
