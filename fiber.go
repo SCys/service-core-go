@@ -9,30 +9,27 @@ import (
 )
 
 // FiberJSONError 输出JSON异常
-func FiberJSONError(ctx *fiber.Ctx, code int, err error) error {
-	ctx.Set("content_type", "application/json; charset=utf-8")
-
-	content, err := JSONError(code, err)
+func FiberJSONError(ctx *fiber.Ctx, code int, _err error) (err error) {
+	content, err := JSONError(code, _err)
 	if err != nil {
 		return err
 	}
 
-	ctx.Set("Content-Type", "application/json")
+	ctx.Set("content-type", "application/json; charset=utf-8")
 	_, err = ctx.Write(content)
-	return err
+	return
 }
 
 // FiberJSON 输出JSON
-func FiberJSON(ctx *fiber.Ctx, data H) error {
+func FiberJSON(ctx *fiber.Ctx, data H) (err error) {
 	content, err := jsoniter.Marshal(H{"data": data})
-
 	if err != nil {
-		return err
+		return
 	}
 
-	ctx.Set("Content-Type", "application/json")
+	ctx.Set("content-type", "application/json; charset=utf-8")
 	_, err = ctx.Write(content)
-	return err
+	return
 }
 
 // FiberIP 获取请求IP， X-Real-IP > X-Forward-Forr > fiber.Ctx.IP
