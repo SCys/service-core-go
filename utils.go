@@ -1,11 +1,12 @@
 package core
 
 import (
-	"github.com/valyala/fastjson"
 	"reflect"
 	"syscall"
 	"time"
 	"unsafe"
+
+	"github.com/valyala/fastjson"
 )
 
 // String copy from strings.Builder
@@ -13,6 +14,7 @@ func String(bs []byte) string {
 	return *(*string)(unsafe.Pointer(&bs))
 }
 
+// Bytes convert str to bytes
 func Bytes(str string) []byte {
 	hdr := *(*reflect.StringHeader)(unsafe.Pointer(&str))
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
@@ -32,6 +34,7 @@ func Now() time.Time {
 	return time.Unix(0, syscall.TimevalToNsec(tv)).In(time.Local)
 }
 
+// OffsetAndLimit get offset,limit in json params
 func OffsetAndLimit(values *fastjson.Value) (int64, int) {
 	offset := values.GetInt64("params", "offset")
 	limit := values.GetInt("params", "limit")

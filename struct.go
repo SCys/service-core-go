@@ -1,9 +1,10 @@
 package core
 
 import (
+	"time"
+
 	jsoniter "github.com/json-iterator/go"
 	"github.com/valyala/fastjson"
-	"time"
 
 	"github.com/rs/xid"
 )
@@ -14,6 +15,7 @@ type H = map[string]interface{}
 // HNil empty struct
 var HNil = H{}
 
+// BasicFieldsInterface basic fields interface with dump function
 type BasicFieldsInterface interface {
 	Dump() []byte
 }
@@ -40,9 +42,12 @@ func NewBasicFields() BasicFields {
 	}
 }
 
+// LoadBasicFields load with default fields
 func LoadBasicFields(i interface{}, value *fastjson.Value) {
-	x, _ := i.(*BasicFields)
-
+	x, ok := i.(*BasicFields)
+	if !ok {
+		return
+	}
 
 	x.ID = String(value.GetStringBytes("id"))
 	x.TSCreate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_create")))

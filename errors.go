@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -26,6 +27,7 @@ var ErrNoAuth = errors.New("no auth")
 // ErrNoPermission http 403 no permission
 var ErrNoPermission = errors.New("no permission")
 
+// JSONError return json data struct
 func JSONError(code int, err error) ([]byte, error) {
 	content, err := jsoniter.Marshal(H{
 		"error": H{
