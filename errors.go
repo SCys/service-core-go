@@ -27,6 +27,9 @@ var ErrNoAuth = errors.New("no auth")
 // ErrNoPermission http 403 no permission
 var ErrNoPermission = errors.New("no permission")
 
+// ErrPaymentRequired 402 Payment Required
+var ErrPaymentRequired = errors.New("payment required")
+
 // JSONError return json data struct
 func JSONError(code int, err error) ([]byte, error) {
 	content, err := jsoniter.Marshal(H{
