@@ -1,4 +1,4 @@
-module github.com/scys/core
+module github.com/scys/service-core-go
 
 go 1.16
 
