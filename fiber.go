@@ -57,7 +57,7 @@ func FiberBasicInfo() fiber.Handler {
 	return func(c *fiber.Ctx) (err error) {
 		ctx := c.Context()
 
-		ctx.SetUserValue("_id", xid.New().String())
+		ctx.SetUserValue("_id", xid.NewWithTime(Now()).String())
 		ctx.SetUserValue("client_ip", FiberIP(c))
 
 		return c.Next()

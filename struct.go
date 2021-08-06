@@ -34,7 +34,7 @@ func NewBasicFields() BasicFields {
 	now := Now()
 
 	return BasicFields{
-		ID:       xid.New().String(),
+		ID:       xid.NewWithTime(now).String(),
 		TSCreate: now,
 		TSUpdate: now,
 		Removed:  false,
