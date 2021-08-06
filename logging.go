@@ -24,11 +24,10 @@ type SimpleFileWriter struct {
 	MaxSize    int64
 	MaxBackups int
 
-	WrotenSize        int64 // RO 记录写入数量
-	WrotenCurrentSiez int64 // RO 当前文件写入计数器
-	File              *os.File
-	TimeFormat        string
-	Mut               sync.Mutex
+	Written    int64 // RO 记录写入数量
+	File       *os.File
+	TimeFormat string
+	Mut        sync.Mutex
 }
 
 func (w *SimpleFileWriter) WriteEntry(e *log.Entry) (n int, err error) {
@@ -45,8 +44,8 @@ func (w *SimpleFileWriter) Write(p []byte) (n int, err error) {
 		return
 	}
 
-	w.WrotenSize += int64(n)
-	if w.MaxSize > 0 && w.WrotenSize > w.MaxSize && w.Filename != "" {
+	w.Written += int64(n)
+	if w.MaxSize > 0 && w.Written > w.MaxSize && w.Filename != "" {
 		err = w.Rotate()
 	}
 
