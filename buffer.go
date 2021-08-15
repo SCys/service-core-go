@@ -6,19 +6,19 @@ import (
 	"sync"
 )
 
-// CopyBufPool cache pool
-var CopyBufPool = sync.Pool{
+// CopyBuffers cache pool
+var CopyBuffers = sync.Pool{
 	New: func() interface{} {
-		return new(bytes.Buffer)
+		// generate 1MB buffer
+		return bytes.NewBuffer(make([]byte, 0, 2<<19))
 	},
 }
 
-// CopyZeroAlloc copy from fasthttp.http.copyZeroAlloc
-func CopyZeroAlloc(w io.Writer, r io.Reader) (int64, error) {
-	buf := CopyBufPool.Get().(*bytes.Buffer)
-	buf.Reset()
+func Copy(w io.Writer, r io.Reader) (int64, error) {
+	buf := CopyBuffers.Get().(*bytes.Buffer)
+	defer CopyBuffers.Put(buf)
 
-	n, err := io.CopyBuffer(w, r, buf.Bytes())
-	CopyBufPool.Put(buf)
-	return n, err
+	buf.Grow(2 << 20) // 2MB
+
+	return io.CopyBuffer(w, r, buf.Bytes())
 }
