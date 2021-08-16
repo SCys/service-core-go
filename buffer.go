@@ -19,6 +19,7 @@ func Copy(w io.Writer, r io.Reader) (int64, error) {
 	defer CopyBuffers.Put(buf)
 
 	buf.Grow(2 << 20) // 2MB
+	b := buf.Bytes()
 
-	return io.CopyBuffer(w, r, buf.Bytes())
+	return io.CopyBuffer(w, r, b[:buf.Cap()])
 }
