@@ -1,19 +1,43 @@
 module github.com/scys/service-core-go
 
-go 1.16
+go 1.17
 
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
-	github.com/gofiber/fiber/v2 v2.15.0
+	github.com/gofiber/fiber/v2 v2.19.0
 	github.com/gojek/heimdall/v7 v7.0.2
 	github.com/jackc/pgx/v4 v4.13.0
-	github.com/json-iterator/go v1.1.11
-	github.com/klauspost/compress v1.13.1 // indirect
+	github.com/json-iterator/go v1.1.12
+	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/phuslu/log v1.0.74
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/phuslu/log v1.0.75
 	github.com/rs/xid v1.3.0
-	github.com/valyala/fasthttp v1.28.0 // indirect
+	github.com/valyala/fasthttp v1.30.0 // indirect
 	github.com/valyala/fastjson v1.6.3
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/sys v0.0.0-20211003122950-b1ebd4e1001c // indirect
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gojek/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
+	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.10.0 // indirect
+	github.com/jackc/pgio v1.0.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgproto3/v2 v2.1.1 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
+	github.com/jackc/pgtype v1.8.1 // indirect
+	github.com/jackc/puddle v1.1.4 // indirect
+	github.com/oschwald/geoip2-golang v1.5.0 // indirect
+	github.com/oschwald/maxminddb-golang v1.8.0 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/tcplisten v1.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
+	golang.org/x/text v0.3.7 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
