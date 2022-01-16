@@ -65,6 +65,86 @@ func LoadBasicFields(i interface{}, value *fastjson.Value) {
 	_ = jsoniter.Unmarshal(value.GetStringBytes("info"), &x.Info)
 }
 
+// PGXGet 获取单一对象
+func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order string) error {
+	table_name := b.Name()
+	fields_elm := reflect.ValueOf(b).Elem()
+	fields_size := fields_elm.NumField()
+
+	fields := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fields_size)
+	arguments := make([]string, 0, fields_size)
+	values := make([]interface{}, 0, 1)
+
+	if raw == "" {
+		raw = "id=$1"
+		values = append(values, b.ID)
+	}
+
+	if order == "" {
+		order = "ts_create"
+	}
+
+	for i := 0; i < fields_size; i++ {
+		valueField := fields_elm.Field(i)
+		tag := fields_elm.Type().Field(i).Tag
+
+		name := tag.Get("json")
+		field := valueField.Addr().Interface()
+
+		fields = append(fields, field)
+		arguments = append(arguments, name)
+	}
+
+	return db.QueryRow(ctx, fmt.Sprintf(
+		"select %s from %s where %s order by %s",
+		strings.Join(arguments, ","), table_name, raw, order,
+	), values...).Scan(fields...)
+}
+
+// PGXFilter 过滤
+func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
+	table_name := b.Name()
+	fields_elm := reflect.ValueOf(b).Elem()
+	fields_size := fields_elm.NumField()
+
+	if order == "" {
+		order = "ts_create"
+	}
+
+	arguments := make([]string, 0, fields_size)
+
+	for i := 0; i < fields_size; i++ {
+		tag := fields_elm.Type().Field(i).Tag
+		name := tag.Get("json")
+		arguments = append(arguments, name)
+	}
+
+	rows, err := db.Query(ctx, fmt.Sprintf(
+		"select %s from %s where %s order by %s",
+		strings.Join(arguments, ","), table_name, raw, order,
+	))
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		if err := scanWrapper(rows); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// PGXCount 获取数量
+func (b *BasicFields) PGXCount(ctx context.Context, db *pgxpool.Pool, raw string) (int, error) {
+	table_name := b.Name()
+	count := 0
+
+	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s where %s", table_name, raw)).Scan(&count)
+	return count, err
+}
+
 // PGXInsert 插入
 func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows, error) {
 	table_name := b.Name()
