@@ -23,7 +23,7 @@ var (
 // BasicFieldsInterface basic fields interface with dump function
 type BasicFieldsInterface interface {
 	Dump() []byte
-	Name() string
+	TableName() string
 }
 
 // BasicFields basic fields
@@ -67,7 +67,7 @@ func LoadBasicFields(i interface{}, value *fastjson.Value) {
 
 // PGXGet 获取单一对象
 func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order string) error {
-	table_name := b.Name()
+	tableName := b.TableName()
 	fields_elm := reflect.ValueOf(b).Elem()
 	fields_size := fields_elm.NumField()
 
@@ -97,13 +97,13 @@ func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order s
 
 	return db.QueryRow(ctx, fmt.Sprintf(
 		"select %s from %s where %s order by %s",
-		strings.Join(arguments, ","), table_name, raw, order,
+		strings.Join(arguments, ","), tableName, raw, order,
 	), values...).Scan(fields...)
 }
 
 // PGXFilter 过滤
 func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
-	table_name := b.Name()
+	tableName := b.TableName()
 	fields_elm := reflect.ValueOf(b).Elem()
 	fields_size := fields_elm.NumField()
 
@@ -121,7 +121,7 @@ func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, orde
 
 	rows, err := db.Query(ctx, fmt.Sprintf(
 		"select %s from %s where %s order by %s",
-		strings.Join(arguments, ","), table_name, raw, order,
+		strings.Join(arguments, ","), tableName, raw, order,
 	))
 	if err != nil {
 		return err
@@ -138,16 +138,16 @@ func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, orde
 
 // PGXCount 获取数量
 func (b *BasicFields) PGXCount(ctx context.Context, db *pgxpool.Pool, raw string) (int, error) {
-	table_name := b.Name()
+	tableName := b.TableName()
 	count := 0
 
-	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s where %s", table_name, raw)).Scan(&count)
+	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s where %s", tableName, raw)).Scan(&count)
 	return count, err
 }
 
 // PGXInsert 插入
 func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows, error) {
-	table_name := b.Name()
+	tableName := b.TableName()
 	fields_elm := reflect.ValueOf(b).Elem()
 	fields_size := fields_elm.NumField()
 
@@ -181,13 +181,13 @@ func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows
 
 	return db.Query(ctx, fmt.Sprintf(
 		"insert into %s (id,ts_create,ts_update,removed,info,%s) values($1,$2,$3,$4,$5,%s)",
-		table_name, strings.Join(arguments, ","), strings.Join(arguments_q, ","),
+		tableName, strings.Join(arguments, ","), strings.Join(arguments_q, ","),
 	), values...)
 }
 
 // PGXUpdate 更新
 func (b *BasicFields) PGXUpdate(ctx context.Context, db *pgxpool.Pool, data H) (pgx.Rows, error) {
-	table_name := b.Name()
+	tableName := b.TableName()
 	fields_size := len(data)
 
 	values := make([]interface{}, 0, fields_size)
@@ -203,15 +203,15 @@ func (b *BasicFields) PGXUpdate(ctx context.Context, db *pgxpool.Pool, data H) (
 		arguments = append(arguments, fmt.Sprintf("%s=$%d", k, len(values)))
 	}
 
-	sql := fmt.Sprintf("update %s set %s where id=$1", table_name, strings.Join(arguments, ","))
+	sql := fmt.Sprintf("update %s set %s where id=$1", tableName, strings.Join(arguments, ","))
 	return db.Query(ctx, sql, values...)
 }
 
 // PGXRemove 删除
 func (b *BasicFields) PGXRemove(ctx context.Context, db *pgxpool.Pool) error {
-	table_name := b.Name()
+	tableName := b.TableName()
 
-	_, err := db.Exec(ctx, fmt.Sprintf("update %s set removed=true,ts_update=$2 where id=$1", table_name),
+	_, err := db.Exec(ctx, fmt.Sprintf("update %s set removed=true,ts_update=$2 where id=$1", tableName),
 		b.ID, b.TSUpdate)
 
 	return err
