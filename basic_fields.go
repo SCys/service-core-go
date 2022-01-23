@@ -28,8 +28,6 @@ type BasicFieldsInterface interface {
 
 // BasicFields basic fields
 type BasicFields struct {
-	BasicFieldsInterface
-
 	ID       string    `json:"id"`
 	TSCreate time.Time `json:"ts_create"`
 	TSUpdate time.Time `json:"ts_update"`
@@ -44,6 +42,10 @@ func (b *BasicFields) Dump() []byte {
 		E("json unmarshal error", err)
 	}
 	return raw
+}
+
+func (b *BasicFields) TableName() string {
+	return ""
 }
 
 // PGXGet 获取单一对象
