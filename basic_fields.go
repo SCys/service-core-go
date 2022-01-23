@@ -23,7 +23,6 @@ var (
 // BasicFieldsInterface basic fields interface with dump function
 type BasicFieldsInterface interface {
 	Dump() []byte
-	TableName() string
 }
 
 // BasicFields basic fields
@@ -44,13 +43,8 @@ func (b *BasicFields) Dump() []byte {
 	return raw
 }
 
-func (b *BasicFields) TableName() string {
-	return ""
-}
-
 // PGXGet 获取单一对象
-func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order string) error {
-	tableName := b.TableName()
+func (b *BasicFields) PGXGet(ctx context.Context, tableName string, db *pgxpool.Pool, raw, order string) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
@@ -78,15 +72,13 @@ func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order s
 		arguments = append(arguments, name)
 	}
 
-	return db.QueryRow(ctx, fmt.Sprintf(
-		"select %s from %s where %s order by %s",
-		strings.Join(arguments, ","), tableName, raw, order,
-	), values...).Scan(fields...)
+	sql := fmt.Sprintf("select %s from %s where %s order by %s", strings.Join(arguments, ","), tableName, raw, order)
+	D("sql: %s", sql)
+	return db.QueryRow(ctx, sql, values...).Scan(fields...)
 }
 
 // PGXFilter 过滤
-func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
-	tableName := b.TableName()
+func (b *BasicFields) PGXFilter(ctx context.Context, tableName string, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
@@ -120,8 +112,7 @@ func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, orde
 }
 
 // PGXCount 获取数量
-func (b *BasicFields) PGXCount(ctx context.Context, db *pgxpool.Pool, raw string) (int, error) {
-	tableName := b.TableName()
+func (b *BasicFields) PGXCount(ctx context.Context, tableName string, db *pgxpool.Pool, raw string) (int, error) {
 	count := 0
 
 	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s where %s", tableName, raw)).Scan(&count)
@@ -129,8 +120,7 @@ func (b *BasicFields) PGXCount(ctx context.Context, db *pgxpool.Pool, raw string
 }
 
 // PGXInsert 插入
-func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows, error) {
-	tableName := b.TableName()
+func (b *BasicFields) PGXInsert(ctx context.Context, tableName string, db *pgxpool.Pool) (pgx.Rows, error) {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
@@ -169,8 +159,7 @@ func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows
 }
 
 // PGXUpdate 更新
-func (b *BasicFields) PGXUpdate(ctx context.Context, db *pgxpool.Pool, data H) (pgx.Rows, error) {
-	tableName := b.TableName()
+func (b *BasicFields) PGXUpdate(ctx context.Context, tableName string, db *pgxpool.Pool, data H) (pgx.Rows, error) {
 	fieldsSize := len(data)
 
 	values := make([]interface{}, 0, fieldsSize)
@@ -191,9 +180,7 @@ func (b *BasicFields) PGXUpdate(ctx context.Context, db *pgxpool.Pool, data H) (
 }
 
 // PGXRemove 删除
-func (b *BasicFields) PGXRemove(ctx context.Context, db *pgxpool.Pool) error {
-	tableName := b.TableName()
-
+func (b *BasicFields) PGXRemove(ctx context.Context, tableName string, db *pgxpool.Pool) error {
 	_, err := db.Exec(ctx, fmt.Sprintf("update %s set removed=true,ts_update=$2 where id=$1", tableName),
 		b.ID, b.TSUpdate)
 
