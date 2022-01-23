@@ -37,32 +37,13 @@ type BasicFields struct {
 	Info     H         `json:"info"`
 }
 
-// NewBasicFields basicFields init
-func NewBasicFields() BasicFields {
-	now := Now()
-
-	return BasicFields{
-		ID:       xid.NewWithTime(now).String(),
-		TSCreate: now,
-		TSUpdate: now,
-		Removed:  false,
-		Info:     H{},
+// Dump dump to bytes
+func (b *BasicFields) Dump() []byte {
+	raw, err := jsoniter.Marshal(b)
+	if err != nil {
+		E("json unmarshal error", err)
 	}
-}
-
-// LoadBasicFields load with default fields
-func LoadBasicFields(i interface{}, value *fastjson.Value) {
-	x, ok := i.(*BasicFields)
-	if !ok {
-		return
-	}
-
-	x.ID = String(value.GetStringBytes("id"))
-	x.TSCreate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_create")))
-	x.TSUpdate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_update")))
-	x.Removed = value.GetBool("removed")
-
-	_ = jsoniter.Unmarshal(value.GetStringBytes("info"), &x.Info)
+	return raw
 }
 
 // PGXGet 获取单一对象
@@ -215,6 +196,34 @@ func (b *BasicFields) PGXRemove(ctx context.Context, db *pgxpool.Pool) error {
 		b.ID, b.TSUpdate)
 
 	return err
+}
+
+// NewBasicFields basicFields init
+func NewBasicFields() BasicFields {
+	now := Now()
+
+	return BasicFields{
+		ID:       xid.NewWithTime(now).String(),
+		TSCreate: now,
+		TSUpdate: now,
+		Removed:  false,
+		Info:     H{},
+	}
+}
+
+// LoadBasicFields load with default fields
+func LoadBasicFields(i interface{}, value *fastjson.Value) {
+	x, ok := i.(*BasicFields)
+	if !ok {
+		return
+	}
+
+	x.ID = String(value.GetStringBytes("id"))
+	x.TSCreate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_create")))
+	x.TSUpdate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_update")))
+	x.Removed = value.GetBool("removed")
+
+	_ = jsoniter.Unmarshal(value.GetStringBytes("info"), &x.Info)
 }
 
 func init() {
