@@ -68,11 +68,11 @@ func LoadBasicFields(i interface{}, value *fastjson.Value) {
 // PGXGet 获取单一对象
 func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order string) error {
 	tableName := b.TableName()
-	fields_elm := reflect.ValueOf(b).Elem()
-	fields_size := fields_elm.NumField()
+	fieldsElm := reflect.ValueOf(b).Elem()
+	fieldsSize := fieldsElm.NumField()
 
-	fields := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fields_size)
-	arguments := make([]string, 0, fields_size)
+	fields := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fieldsSize)
+	arguments := make([]string, 0, fieldsSize)
 	values := make([]interface{}, 0, 1)
 
 	if raw == "" {
@@ -84,9 +84,9 @@ func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order s
 		order = "ts_create"
 	}
 
-	for i := 0; i < fields_size; i++ {
-		valueField := fields_elm.Field(i)
-		tag := fields_elm.Type().Field(i).Tag
+	for i := 0; i < fieldsSize; i++ {
+		valueField := fieldsElm.Field(i)
+		tag := fieldsElm.Type().Field(i).Tag
 
 		name := tag.Get("json")
 		field := valueField.Addr().Interface()
@@ -104,17 +104,17 @@ func (b *BasicFields) PGXGet(ctx context.Context, db *pgxpool.Pool, raw, order s
 // PGXFilter 过滤
 func (b *BasicFields) PGXFilter(ctx context.Context, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
 	tableName := b.TableName()
-	fields_elm := reflect.ValueOf(b).Elem()
-	fields_size := fields_elm.NumField()
+	fieldsElm := reflect.ValueOf(b).Elem()
+	fieldsSize := fieldsElm.NumField()
 
 	if order == "" {
 		order = "ts_create"
 	}
 
-	arguments := make([]string, 0, fields_size)
+	arguments := make([]string, 0, fieldsSize)
 
-	for i := 0; i < fields_size; i++ {
-		tag := fields_elm.Type().Field(i).Tag
+	for i := 0; i < fieldsSize; i++ {
+		tag := fieldsElm.Type().Field(i).Tag
 		name := tag.Get("json")
 		arguments = append(arguments, name)
 	}
@@ -148,10 +148,10 @@ func (b *BasicFields) PGXCount(ctx context.Context, db *pgxpool.Pool, raw string
 // PGXInsert 插入
 func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows, error) {
 	tableName := b.TableName()
-	fields_elm := reflect.ValueOf(b).Elem()
-	fields_size := fields_elm.NumField()
+	fieldsElm := reflect.ValueOf(b).Elem()
+	fieldsSize := fieldsElm.NumField()
 
-	values := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fields_size)
+	values := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fieldsSize)
 
 	values = append(values, b.ID)
 	values = append(values, b.TSCreate)
@@ -159,12 +159,12 @@ func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows
 	values = append(values, b.Removed)
 	values = append(values, b.Info)
 
-	arguments := make([]string, 0, fields_size)
-	arguments_q := make([]string, 0, fields_size)
+	arguments := make([]string, 0, fieldsSize)
+	argumentsQ := make([]string, 0, fieldsSize)
 
-	for i := 0; i < fields_size; i++ {
-		valueField := fields_elm.Field(i)
-		typeField := fields_elm.Type().Field(i)
+	for i := 0; i < fieldsSize; i++ {
+		valueField := fieldsElm.Field(i)
+		typeField := fieldsElm.Type().Field(i)
 		tag := typeField.Tag
 
 		name := tag.Get("json")
@@ -176,22 +176,22 @@ func (b *BasicFields) PGXInsert(ctx context.Context, db *pgxpool.Pool) (pgx.Rows
 
 		values = append(values, valueField.Interface())
 		arguments = append(arguments, name)
-		arguments_q = append(arguments_q, fmt.Sprintf("$%d", len(values)))
+		argumentsQ = append(argumentsQ, fmt.Sprintf("$%d", len(values)))
 	}
 
 	return db.Query(ctx, fmt.Sprintf(
 		"insert into %s (id,ts_create,ts_update,removed,info,%s) values($1,$2,$3,$4,$5,%s)",
-		tableName, strings.Join(arguments, ","), strings.Join(arguments_q, ","),
+		tableName, strings.Join(arguments, ","), strings.Join(argumentsQ, ","),
 	), values...)
 }
 
 // PGXUpdate 更新
 func (b *BasicFields) PGXUpdate(ctx context.Context, db *pgxpool.Pool, data H) (pgx.Rows, error) {
 	tableName := b.TableName()
-	fields_size := len(data)
+	fieldsSize := len(data)
 
-	values := make([]interface{}, 0, fields_size)
-	arguments := make([]string, 0, fields_size)
+	values := make([]interface{}, 0, fieldsSize)
+	arguments := make([]string, 0, fieldsSize)
 
 	// loop data
 	for k, v := range data {
