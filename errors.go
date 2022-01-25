@@ -32,16 +32,10 @@ var ErrPaymentRequired = errors.New("payment required")
 
 // JSONError return json data struct
 func JSONError(code int, err error) ([]byte, error) {
-	content, err := jsoniter.Marshal(H{
+	return jsoniter.Marshal(H{
 		"error": H{
 			"code":    code,
 			"message": err.Error(),
 		},
 	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return content, nil
 }

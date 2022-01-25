@@ -44,17 +44,19 @@ func (b *BasicFields) Dump() []byte {
 }
 
 // PGXGet 获取单一对象
-func (b *BasicFields) PGXGet(ctx context.Context, tableName string, db *pgxpool.Pool, raw, order string) error {
+func PGXGet(ctx context.Context, b interface{}, table string, db *pgxpool.Pool, raw, order string, key interface{}) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
 	fields := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fieldsSize)
-	arguments := make([]string, 0, fieldsSize)
-	values := make([]interface{}, 0, 1)
+	arguments := make([]string, 0, BasicFieldsInlineFieldsSize+fieldsSize)
+
+	if key == "" {
+		key = b.(*BasicFields).ID
+	}
 
 	if raw == "" {
 		raw = "id=$1"
-		values = append(values, b.ID)
 	}
 
 	if order == "" {
@@ -62,23 +64,44 @@ func (b *BasicFields) PGXGet(ctx context.Context, tableName string, db *pgxpool.
 	}
 
 	for i := 0; i < fieldsSize; i++ {
-		valueField := fieldsElm.Field(i)
-		tag := fieldsElm.Type().Field(i).Tag
+		v := fieldsElm.Field(i)
+		t := fieldsElm.Type().Field(i)
 
-		name := tag.Get("json")
-		field := valueField.Addr().Interface()
+		if v.Type().Kind() == reflect.Struct && t.Anonymous && v.Type().Name() == "BasicFields" {
+			fieldEmbedElm := reflect.ValueOf(v.Addr().Interface()).Elem()
+			for j := 0; j < fieldEmbedElm.NumField(); j++ {
+				arguments = append(arguments, fieldEmbedElm.Type().Field(j).Tag.Get("json"))
+				fields = append(fields, fieldEmbedElm.Field(j).Addr().Interface())
+			}
 
-		fields = append(fields, field)
+			continue
+		}
+
+		// only support jsoniterable
+		name := t.Tag.Get("json")
+		if name == "" {
+			continue
+		}
+
+		fields = append(fields, v.Addr().Interface())
 		arguments = append(arguments, name)
 	}
 
-	sql := fmt.Sprintf("select %s from %s where %s order by %s", strings.Join(arguments, ","), tableName, raw, order)
-	D("sql: %s", sql)
-	return db.QueryRow(ctx, sql, values...).Scan(fields...)
+	sql := fmt.Sprintf("select %s from %s where %s order by %s", strings.Join(arguments, ","), table, raw, order)
+
+	// D("sql: %s", sql)
+	// D("fields: %v", fields)
+
+	err := db.QueryRow(ctx, sql, key).Scan(fields...)
+	if err == pgx.ErrNoRows {
+		return ErrObjectNotFound
+	}
+
+	return err
 }
 
 // PGXFilter 过滤
-func (b *BasicFields) PGXFilter(ctx context.Context, tableName string, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
+func PGXFilter(ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
@@ -111,59 +134,62 @@ func (b *BasicFields) PGXFilter(ctx context.Context, tableName string, db *pgxpo
 	return nil
 }
 
-// PGXCount 获取数量
-func (b *BasicFields) PGXCount(ctx context.Context, tableName string, db *pgxpool.Pool, raw string) (int, error) {
-	count := 0
-
-	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s where %s", tableName, raw)).Scan(&count)
-	return count, err
-}
-
 // PGXInsert 插入
-func (b *BasicFields) PGXInsert(ctx context.Context, tableName string, db *pgxpool.Pool) (pgx.Rows, error) {
+func PGXInsert(ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
 	values := make([]interface{}, 0, BasicFieldsInlineFieldsSize+fieldsSize)
 
-	values = append(values, b.ID)
-	values = append(values, b.TSCreate)
-	values = append(values, b.TSUpdate)
-	values = append(values, b.Removed)
-	values = append(values, b.Info)
-
-	arguments := make([]string, 0, fieldsSize)
-	argumentsQ := make([]string, 0, fieldsSize)
+	arguments := make([]string, 0, BasicFieldsInlineFieldsSize+fieldsSize)
+	argumentsQ := make([]string, 0, BasicFieldsInlineFieldsSize+fieldsSize)
 
 	for i := 0; i < fieldsSize; i++ {
-		valueField := fieldsElm.Field(i)
-		typeField := fieldsElm.Type().Field(i)
-		tag := typeField.Tag
+		v := fieldsElm.Field(i)
+		t := fieldsElm.Type().Field(i)
 
-		name := tag.Get("json")
+		if v.Type().Kind() == reflect.Struct && t.Anonymous && v.Type().Name() == "BasicFields" {
+			fieldEmbedElm := reflect.ValueOf(v.Addr().Interface()).Elem()
+			for j := 0; j < fieldEmbedElm.NumField(); j++ {
+				values = append(values, fieldEmbedElm.Field(j).Addr().Interface())
+				arguments = append(arguments, fieldEmbedElm.Type().Field(j).Tag.Get("json"))
+				argumentsQ = append(argumentsQ, fmt.Sprintf("$%d", len(values)))
+			}
 
-		// ignore inline fields
-		if sort.SearchStrings(BasicFieldsInlineFields, name) < BasicFieldsInlineFieldsSize {
 			continue
 		}
 
-		values = append(values, valueField.Interface())
+		name := t.Tag.Get("json")
+
+		values = append(values, v.Interface())
 		arguments = append(arguments, name)
 		argumentsQ = append(argumentsQ, fmt.Sprintf("$%d", len(values)))
 	}
 
-	return db.Query(ctx, fmt.Sprintf(
-		"insert into %s (id,ts_create,ts_update,removed,info,%s) values($1,$2,$3,$4,$5,%s)",
+	_, err := db.Exec(ctx, fmt.Sprintf(
+		"insert into %s (%s) values(%s)",
 		tableName, strings.Join(arguments, ","), strings.Join(argumentsQ, ","),
 	), values...)
+	return err
+}
+
+// PGXCount 获取数量
+func (b *BasicFields) PGXCount(ctx context.Context, tableName string, db *pgxpool.Pool, raw string) (int, error) {
+	count := 0
+
+	if raw != "" {
+		raw = "where " + raw
+	}
+
+	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s %s", tableName, raw)).Scan(&count)
+	return count, err
 }
 
 // PGXUpdate 更新
-func (b *BasicFields) PGXUpdate(ctx context.Context, tableName string, db *pgxpool.Pool, data H) (pgx.Rows, error) {
-	fieldsSize := len(data)
-
-	values := make([]interface{}, 0, fieldsSize)
-	arguments := make([]string, 0, fieldsSize)
+func PGXUpdate(ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool, data H) (pgx.Rows, error) {
+	size := len(data)
+	values := make([]interface{}, 0, size)
+	arguments := make([]string, 0, size)
 
 	// loop data
 	for k, v := range data {
