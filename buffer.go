@@ -1,25 +1,14 @@
 package core
 
 import (
-	"bytes"
 	"io"
-	"sync"
+
+	"github.com/valyala/bytebufferpool"
 )
 
-// CopyBuffers cache pool
-var CopyBuffers = sync.Pool{
-	New: func() interface{} {
-		// generate 1MB buffer
-		return bytes.NewBuffer(make([]byte, 0, 2<<19))
-	},
-}
-
 func Copy(w io.Writer, r io.Reader) (int64, error) {
-	buf := CopyBuffers.Get().(*bytes.Buffer)
-	defer CopyBuffers.Put(buf)
+	bb := bytebufferpool.Get()
+	defer bytebufferpool.Put(bb)
 
-	buf.Grow(2 << 20) // 2MB
-	b := buf.Bytes()
-
-	return io.CopyBuffer(w, r, b[:buf.Cap()])
+	return io.CopyBuffer(w, r, bb.Bytes())
 }
