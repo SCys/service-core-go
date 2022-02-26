@@ -103,7 +103,7 @@ func PGXGet(ctx context.Context, b interface{}, table string, db *pgxpool.Pool, 
 // PGXFilter 过滤
 func PGXFilter(
 	ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool,
-	raw, order string, offset, limit int64, scanWrapper func(pgx.Rows) error,
+	raw, order string, offset, limit int64, scanWrapper func(pgx.Rows) error, params ...interface{},
 ) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
@@ -115,16 +115,28 @@ func PGXFilter(
 	arguments := make([]string, 0, fieldsSize)
 
 	for i := 0; i < fieldsSize; i++ {
-		tag := fieldsElm.Type().Field(i).Tag
-		name := tag.Get("json")
-		arguments = append(arguments, name)
+		v := fieldsElm.Field(i)
+		t := fieldsElm.Type().Field(i)
+
+		if v.Type().Kind() == reflect.Struct && t.Anonymous && v.Type().Name() == "BasicFields" {
+			fieldEmbedElm := reflect.ValueOf(v.Addr().Interface()).Elem()
+			for j := 0; j < fieldEmbedElm.NumField(); j++ {
+				arguments = append(arguments, fieldEmbedElm.Type().Field(j).Tag.Get("json"))
+			}
+
+			continue
+		}
+
+		arguments = append(arguments, t.Tag.Get("json"))
 	}
 
-	rows, err := db.Query(ctx, fmt.Sprintf(
+	sql := fmt.Sprintf(
 		"select %s from %s where %s order by %s offset %d limit %d",
 		strings.Join(arguments, ","), tableName, raw, order, offset, limit,
-	))
+	)
+	rows, err := db.Query(ctx, sql, params...)
 	if err != nil {
+		E("query error", err, H{"sql": sql})
 		return err
 	}
 
