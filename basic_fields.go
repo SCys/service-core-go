@@ -103,7 +103,7 @@ func PGXGet(ctx context.Context, b interface{}, table string, db *pgxpool.Pool, 
 // PGXFilter 过滤
 func PGXFilter(
 	ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool,
-	raw, order string, offset, limit int, scanWrapper func(pgx.Rows) error,
+	raw, order string, offset, limit int64, scanWrapper func(pgx.Rows) error,
 ) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
