@@ -101,7 +101,10 @@ func PGXGet(ctx context.Context, b interface{}, table string, db *pgxpool.Pool, 
 }
 
 // PGXFilter 过滤
-func PGXFilter(ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool, raw, order string, scanWrapper func(pgx.Rows) error) error {
+func PGXFilter(
+	ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool,
+	raw, order string, offset, limit int, scanWrapper func(pgx.Rows) error,
+) error {
 	fieldsElm := reflect.ValueOf(b).Elem()
 	fieldsSize := fieldsElm.NumField()
 
@@ -118,8 +121,8 @@ func PGXFilter(ctx context.Context, b interface{}, tableName string, db *pgxpool
 	}
 
 	rows, err := db.Query(ctx, fmt.Sprintf(
-		"select %s from %s where %s order by %s",
-		strings.Join(arguments, ","), tableName, raw, order,
+		"select %s from %s where %s order by %s offset %d limit %d",
+		strings.Join(arguments, ","), tableName, raw, order, offset, limit,
 	))
 	if err != nil {
 		return err
@@ -173,18 +176,6 @@ func PGXInsert(ctx context.Context, b interface{}, tableName string, db *pgxpool
 	return err
 }
 
-// PGXCount 获取数量
-func (b *BasicFields) PGXCount(ctx context.Context, tableName string, db *pgxpool.Pool, raw string) (int, error) {
-	count := 0
-
-	if raw != "" {
-		raw = "where " + raw
-	}
-
-	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s %s", tableName, raw)).Scan(&count)
-	return count, err
-}
-
 // PGXUpdate 更新
 func PGXUpdate(ctx context.Context, b interface{}, tableName string, db *pgxpool.Pool, data H) (pgx.Rows, error) {
 	size := len(data)
@@ -203,6 +194,18 @@ func PGXUpdate(ctx context.Context, b interface{}, tableName string, db *pgxpool
 
 	sql := fmt.Sprintf("update %s set %s where id=$1", tableName, strings.Join(arguments, ","))
 	return db.Query(ctx, sql, values...)
+}
+
+// PGXCount 获取数量
+func (b *BasicFields) PGXCount(ctx context.Context, tableName string, db *pgxpool.Pool, raw string) (int, error) {
+	count := 0
+
+	if raw != "" {
+		raw = "where " + raw
+	}
+
+	err := db.QueryRow(ctx, fmt.Sprintf("select count(*) from %s %s", tableName, raw)).Scan(&count)
+	return count, err
 }
 
 // PGXRemove 删除
