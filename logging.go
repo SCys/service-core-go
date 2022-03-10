@@ -15,7 +15,7 @@ import (
 	"github.com/phuslu/log"
 )
 
-var loggerSupportExtraFields = []string{"client_ip", "_id", "api"}
+var loggerSupportExtraFields = []string{"client_ip", "_id"}
 var loggerRoot = log.Logger{Level: log.DebugLevel}
 
 type SimpleFileWriter struct {
@@ -176,6 +176,17 @@ func loggerExtraFieldContext(entry *log.Entry, msg string, params ...interface{}
 
 			if err, ok := v.Value("error").(error); ok {
 				entry = entry.Err(err)
+			}
+
+			if s, ok := v.Value("api").(string); ok {
+				var sb strings.Builder
+
+				sb.WriteString("[")
+				sb.WriteString(s)
+				sb.WriteString("]")
+				sb.WriteString(msg)
+
+				msg = sb.String()
 			}
 
 		case H:
