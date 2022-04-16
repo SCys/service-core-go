@@ -37,6 +37,8 @@ func PGXFilter[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool,
 		return err
 	}
 
+	defer rows.Close()
+
 	for rows.Next() {
 		if err := scanWrapper(rows); err != nil {
 			return err

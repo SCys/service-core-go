@@ -37,6 +37,8 @@ func DBFilter[T BasicFieldsInterface](db *sql.DB,
 		return err
 	}
 
+	defer rows.Close()
+
 	for rows.Next() {
 		if err := scanWrapper(rows); err != nil {
 			return err
