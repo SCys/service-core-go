@@ -158,8 +158,8 @@ var loggerDebug = log.Logger{
 	},
 }
 
-func loggerExtraFieldContext(entry *log.Entry, msg string, params ...interface{}) *log.Entry {
-	fields := make([]interface{}, 0, len(params))
+func loggerExtraFieldContext(entry *log.Entry, msg string, params ...any) *log.Entry {
+	fields := make([]any, 0, len(params))
 
 	for _, it := range params {
 		switch v := it.(type) {
@@ -189,8 +189,11 @@ func loggerExtraFieldContext(entry *log.Entry, msg string, params ...interface{}
 				msg = sb.String()
 			}
 
-		case H:
+		case map[string]any:
 			entry = entry.Fields(v)
+
+		case H:
+			entry = entry.Fields(v.Fields())
 
 		default:
 			fields = append(fields, v)
@@ -203,27 +206,27 @@ func loggerExtraFieldContext(entry *log.Entry, msg string, params ...interface{}
 }
 
 // I logging info message
-func I(msg string, params ...interface{}) {
+func I(msg string, params ...any) {
 	loggerExtraFieldContext(loggerInfo.Info(), msg, params...)
 }
 
 // W logging warning message
-func W(msg string, params ...interface{}) {
+func W(msg string, params ...any) {
 	loggerExtraFieldContext(loggerWarn.Warn(), msg, params...)
 }
 
 // E logging info message
-func E(msg string, err error, params ...interface{}) {
+func E(msg string, err error, params ...any) {
 	entry := loggerError.Error().Err(err)
 	loggerExtraFieldContext(entry, msg, params...)
 }
 
 // F logging info message
-func F(msg string, params ...interface{}) {
+func F(msg string, params ...any) {
 	loggerExtraFieldContext(loggerError.Fatal(), msg, params...)
 }
 
 // D logging info message
-func D(msg string, params ...interface{}) {
+func D(msg string, params ...any) {
 	loggerExtraFieldContext(loggerDebug.Debug(), msg, params...)
 }
