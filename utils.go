@@ -51,3 +51,9 @@ func OffsetAndLimit(values *fastjson.Value) (int64, int) {
 
 	return offset, limit
 }
+
+// IsZero compare value with zero
+func IsZero[T comparable](v T) bool {
+	var zero T // init with value (0?)
+	return v == zero
+}
