@@ -28,15 +28,16 @@ func buildSelectQuery(table, raw, order string, arguments ...string) string {
 func basicFieldsGenFieldsAndArguments[T BasicFieldsInterface](target T) ([]any, []string) {
 	targetValue := reflect.ValueOf(target)
 	targetType := reflect.TypeOf(target)
+	isPointer := targetValue.Kind() == reflect.Pointer
 
-	if targetValue.Kind() == reflect.Pointer {
+	if isPointer {
 		targetValue = targetValue.Elem()
 		targetType = targetType.Elem()
 	}
 
 	fieldsSize := targetType.NumField()
 
-	values := make([]any, 0, basicFieldsInlineFieldsSize+fieldsSize)
+	fields := make([]any, 0, basicFieldsInlineFieldsSize+fieldsSize)
 	arguments := make([]string, 0, basicFieldsInlineFieldsSize+fieldsSize)
 
 	for i := 0; i < fieldsSize; i++ {
@@ -45,11 +46,19 @@ func basicFieldsGenFieldsAndArguments[T BasicFieldsInterface](target T) ([]any, 
 
 		// 解码基础 BasicFields 对象
 		if v.Type().Kind() == reflect.Struct && v.Type().Name() == "BasicFields" {
-			values = append(values, targetValue.FieldByName("ID").Interface())
-			values = append(values, targetValue.FieldByName("TSCreate").Interface())
-			values = append(values, targetValue.FieldByName("TSUpdate").Interface())
-			values = append(values, targetValue.FieldByName("Removed").Interface())
-			values = append(values, targetValue.FieldByName("Info").Interface())
+			if isPointer {
+				fields = append(fields, targetValue.FieldByName("ID").Addr().Interface())
+				fields = append(fields, targetValue.FieldByName("TSCreate").Addr().Interface())
+				fields = append(fields, targetValue.FieldByName("TSUpdate").Addr().Interface())
+				fields = append(fields, targetValue.FieldByName("Removed").Addr().Interface())
+				fields = append(fields, targetValue.FieldByName("Info").Addr().Interface())
+			} else {
+				fields = append(fields, targetValue.FieldByName("ID").Interface())
+				fields = append(fields, targetValue.FieldByName("TSCreate").Interface())
+				fields = append(fields, targetValue.FieldByName("TSUpdate").Interface())
+				fields = append(fields, targetValue.FieldByName("Removed").Interface())
+				fields = append(fields, targetValue.FieldByName("Info").Interface())
+			}
 
 			arguments = append(arguments, "id")
 			arguments = append(arguments, "ts_create")
@@ -68,9 +77,13 @@ func basicFieldsGenFieldsAndArguments[T BasicFieldsInterface](target T) ([]any, 
 
 		name := strings.Split(tag, ",")[0]
 
-		values = append(values, v.Interface())
+		if isPointer {
+			fields = append(fields, v.Addr().Interface())
+		} else {
+			fields = append(fields, v.Interface())
+		}
 		arguments = append(arguments, name)
 	}
 
-	return values, arguments
+	return fields, arguments
 }
