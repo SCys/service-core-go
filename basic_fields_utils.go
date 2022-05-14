@@ -71,7 +71,7 @@ func basicFieldsGenFieldsAndArguments[T BasicFieldsInterface](target T) ([]any, 
 
 		// only support json tag
 		tag := t.Tag.Get("json")
-		if tag == "" {
+		if tag == "" || tag == "-" {
 			continue
 		}
 
