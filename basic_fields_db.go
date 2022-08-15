@@ -2,9 +2,10 @@ package core
 
 import (
 	"database/sql"
-	"fmt"
-	"github.com/jackc/pgx/v4"
+	"strconv"
 	"strings"
+
+	"github.com/jackc/pgx/v4"
 )
 
 // DBGet get one row from database
@@ -31,7 +32,14 @@ func DBFilter[T BasicFieldsInterface](db *sql.DB,
 	table := item.TableName()
 	query := buildSelectQuery(table, raw, order, arguments...)
 
-	rows, err := db.Query(query+fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset), params...)
+	builder := strings.Builder{}
+	builder.WriteString(query)
+	builder.WriteString(" LIMIT ")
+	builder.WriteString(strconv.FormatInt(limit, 10))
+	builder.WriteString(" OFFSET ")
+	builder.WriteString(strconv.FormatInt(offset, 10))
+
+	rows, err := db.Query(builder.String(), params...)
 	if err != nil {
 		E("query error", err, H{"sql": query})
 		return err
@@ -55,7 +63,7 @@ func DBInsert[T BasicFieldsInterface](db *sql.DB, item T) error {
 
 	argumentsQ := make([]string, len(arguments))
 	for i := range arguments {
-		argumentsQ[i] = fmt.Sprintf("$%d", i+1)
+		argumentsQ[i] = "$" + strconv.Itoa(i+1)
 	}
 
 	query := strings.Builder{}
@@ -76,6 +84,7 @@ func DBUpdate[T BasicFieldsInterface](db *sql.DB, item T, key any, data H) error
 	size := len(data)
 	values := make([]any, 0, size)
 	arguments := make([]string, 0, size)
+	builder := strings.Builder{}
 
 	values = append(values, key)
 
@@ -86,17 +95,23 @@ func DBUpdate[T BasicFieldsInterface](db *sql.DB, item T, key any, data H) error
 		}
 
 		values = append(values, v)
-		arguments = append(arguments, fmt.Sprintf("%s=$%d", k, len(values)))
+
+		builder.Reset()
+		builder.WriteString(k)
+		builder.WriteString("=$")
+		builder.WriteString(strconv.Itoa(len(values)))
+
+		arguments = append(arguments, builder.String())
 	}
 
-	query := strings.Builder{}
-	query.WriteString("UPDATE ")
-	query.WriteString(item.TableName())
-	query.WriteString(" SET ")
-	query.WriteString(strings.Join(arguments, ", "))
-	query.WriteString(" WHERE id=$1")
+	builder.Reset()
+	builder.WriteString("UPDATE ")
+	builder.WriteString(item.TableName())
+	builder.WriteString(" SET ")
+	builder.WriteString(strings.Join(arguments, ", "))
+	builder.WriteString(" WHERE id=$1")
 
-	_, err := db.Exec(query.String(), values...)
+	_, err := db.Exec(builder.String(), values...)
 	return err
 }
 

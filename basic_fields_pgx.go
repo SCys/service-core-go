@@ -2,7 +2,7 @@ package core
 
 import (
 	"context"
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v4"
@@ -32,7 +32,14 @@ func PGXFilter[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool,
 	table := item.TableName()
 	query := buildSelectQuery(table, raw, order, arguments...)
 
-	rows, err := db.Query(ctx, query+fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset), params...)
+	builder := strings.Builder{}
+	builder.WriteString(query)
+	builder.WriteString(" LIMIT ")
+	builder.WriteString(strconv.FormatInt(limit, 10))
+	builder.WriteString(" OFFSET ")
+	builder.WriteString(strconv.FormatInt(offset, 10))
+
+	rows, err := db.Query(ctx, builder.String(), params...)
 	if err != nil {
 		E("query error", err, H{"sql": query})
 		return err
@@ -56,7 +63,7 @@ func PGXInsert[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool, it
 
 	argumentsQ := make([]string, len(arguments))
 	for i := range arguments {
-		argumentsQ[i] = fmt.Sprintf("$%d", i+1)
+		argumentsQ[i] = "$" + strconv.Itoa(i+1)
 	}
 
 	query := strings.Builder{}
@@ -80,6 +87,8 @@ func PGXUpdate[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool, it
 
 	values = append(values, key)
 
+	builder := strings.Builder{}
+
 	// loop data
 	for k, v := range data {
 		if k == "id" {
@@ -87,17 +96,23 @@ func PGXUpdate[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool, it
 		}
 
 		values = append(values, v)
-		arguments = append(arguments, fmt.Sprintf("%s=$%d", k, len(values)))
+
+		builder.Reset()
+		builder.WriteString(k)
+		builder.WriteString("=$")
+		builder.WriteString(strconv.Itoa(len(values)))
+
+		arguments = append(arguments, builder.String())
 	}
 
-	query := strings.Builder{}
-	query.WriteString("UPDATE ")
-	query.WriteString(item.TableName())
-	query.WriteString(" SET ")
-	query.WriteString(strings.Join(arguments, ", "))
-	query.WriteString(" WHERE id=$1")
+	builder.Reset()
+	builder.WriteString("UPDATE ")
+	builder.WriteString(item.TableName())
+	builder.WriteString(" SET ")
+	builder.WriteString(strings.Join(arguments, ", "))
+	builder.WriteString(" WHERE id=$1")
 
-	_, err := db.Exec(ctx, query.String(), values...)
+	_, err := db.Exec(ctx, builder.String(), values...)
 	return err
 }
 
@@ -139,9 +154,17 @@ func PGXUpdateHelper(ctx context.Context, name string, id any, data H, db *pgxpo
 		return err
 	}
 
+	builder := strings.Builder{}
 	for key, value := range data {
-		query := fmt.Sprintf("update %s set %s=$2 where id=$1", name, key)
-		if _, err := tx.Exec(ctx, query, id, value); err != nil {
+		// query := fmt.Sprintf("update %s set %s=$2 where id=$1", name, key)
+		builder.Reset()
+		builder.WriteString("update ")
+		builder.WriteString(name)
+		builder.WriteString(" set ")
+		builder.WriteString(key)
+		builder.WriteString("=$1 where id=$1")
+
+		if _, err := tx.Exec(ctx, builder.String(), id, value); err != nil {
 			_ = tx.Rollback(ctx)
 			return err
 		}

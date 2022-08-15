@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -68,7 +67,7 @@ func (w *SimpleFileWriter) Rotate() (err error) {
 	// rename to new filename
 	now := time.Now()
 	prefix := filepath.Base(w.Filename)
-	name := fmt.Sprintf("%s.%s.log", prefix, now.Format(time.RFC3339))
+	name := prefix + "." + now.Format(time.RFC3339) + ".log"
 	os.Rename(w.Filename, name)
 
 	// keep old
