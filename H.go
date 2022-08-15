@@ -2,7 +2,8 @@ package core
 
 import (
 	"database/sql/driver"
-	jsoniter "github.com/json-iterator/go"
+
+	"github.com/bytedance/sonic"
 )
 
 // H alias map[string]any
@@ -21,12 +22,12 @@ func (h H) Fields() map[string]any {
 
 // Value implement driver.Valuer
 func (h H) Value() (driver.Value, error) {
-	return jsoniter.MarshalToString(h)
+	return sonic.MarshalString(h)
 }
 
 func (h H) LoadsString(src string) error {
-	return jsoniter.UnmarshalFromString(src, &h)
+	return sonic.UnmarshalString(src, &h)
 }
 func (h H) LoadsBytes(src []byte) error {
-	return jsoniter.Unmarshal(src, &h)
+	return sonic.Unmarshal(src, &h)
 }
