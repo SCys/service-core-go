@@ -162,7 +162,7 @@ func PGXUpdateHelper(ctx context.Context, name string, id any, data H, db *pgxpo
 		builder.WriteString(name)
 		builder.WriteString(" set ")
 		builder.WriteString(key)
-		builder.WriteString("=$1 where id=$1")
+		builder.WriteString("=$2 where id=$1")
 
 		if _, err := tx.Exec(ctx, builder.String(), id, value); err != nil {
 			_ = tx.Rollback(ctx)
