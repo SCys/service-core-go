@@ -32,6 +32,7 @@ func Now() time.Time {
 		return time.Now().In(time.Local)
 	}
 	return time.Unix(0, syscall.TimevalToNsec(tv)).In(time.Local)
+	// return time.Unix(int64(tv.Sec), int64(tv.Usec)*1000).In(time.Local)
 }
 
 // OffsetAndLimit get offset,limit in json params
