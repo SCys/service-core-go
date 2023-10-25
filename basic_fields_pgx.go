@@ -28,6 +28,8 @@ func PGXGet[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool,
 func PGXFilter[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool,
 	item T, raw, order string, offset, limit int64, scanWrapper func(pgx.Rows) error, params ...any,
 ) error {
+	var err error
+
 	_, arguments := basicFieldsGenFieldsAndArguments(item)
 	table := item.TableName()
 	query := buildSelectQuery(table, raw, order, arguments...)
@@ -45,15 +47,15 @@ func PGXFilter[T BasicFieldsInterface](ctx context.Context, db *pgxpool.Pool,
 		return err
 	}
 
-	defer rows.Close()
-
 	for rows.Next() {
-		if err := scanWrapper(rows); err != nil {
-			return err
+		err = scanWrapper(rows)
+		if err != nil {
+			break
 		}
 	}
 
-	return nil
+	rows.Close()
+	return err
 }
 
 // PGXInsert 插入
