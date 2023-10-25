@@ -2,7 +2,6 @@ package core
 
 import (
 	"reflect"
-	"syscall"
 	"time"
 	"unsafe"
 
@@ -26,12 +25,12 @@ func Bytes(str string) []byte {
 
 // Now from fasttime
 func Now() time.Time {
-	var tv syscall.Timeval
-	err := syscall.Gettimeofday(&tv)
-	if err != nil {
-		return time.Now().In(time.Local)
-	}
-	return time.Unix(0, syscall.TimevalToNsec(tv)).In(time.Local)
+	// var tv syscall.Timeval
+	// err := syscall.Gettimeofday(&tv)
+	// if err != nil {
+	return time.Now().In(time.Local)
+	// }
+	// return time.Unix(0, syscall.TimevalToNsec(tv)).In(time.Local)
 	// return time.Unix(int64(tv.Sec), int64(tv.Usec)*1000).In(time.Local)
 }
 
