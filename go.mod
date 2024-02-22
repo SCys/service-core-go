@@ -3,7 +3,7 @@ module github.com/scys/service-core-go
 go 1.18
 
 require (
-	github.com/gofiber/fiber/v2 v2.50.0
+	github.com/gofiber/fiber/v2 v2.52.1
 	github.com/gojek/heimdall/v7 v7.0.2
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/json-iterator/go v1.1.12
@@ -20,7 +20,7 @@ require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gojek/valkyrie v0.0.0-20190210220504-8f62c1e7ba45 // indirect
-	github.com/google/uuid v1.3.1 // indirect
+	github.com/google/uuid v1.5.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -39,10 +39,10 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
-	github.com/valyala/fasthttp v1.50.0 // indirect
+	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
