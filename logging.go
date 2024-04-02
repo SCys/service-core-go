@@ -128,17 +128,17 @@ func NewFileWriter(name string, maxSize int64, maxBackups int) *SimpleFileWriter
 	return w
 }
 
-var loggerInfo = log.Logger{
+var LoggerInfo = log.Logger{
 	Level:  log.InfoLevel,
 	Writer: NewFileWriter("log/info.log", 70<<20, 60),
 }
 
-var loggerWarn = log.Logger{
+var LoggerWarn = log.Logger{
 	Level:  log.WarnLevel,
 	Writer: NewFileWriter("log/warn.log", 70<<20, 60),
 }
 
-var loggerError = log.Logger{
+var LoggerError = log.Logger{
 	Level:  log.ErrorLevel,
 	Writer: NewFileWriter("log/error.log", 70<<20, 60),
 }
@@ -157,7 +157,8 @@ var loggerDebug = log.Logger{
 	},
 }
 
-func loggerExtraFieldContext(entry *log.Entry, msg string, params ...any) *log.Entry {
+// LogWithExtraFields adds extra fields to a log entry based on the provided parameters.
+func LogWithExtraFields(entry *log.Entry, msg string, params ...any) *log.Entry {
 	fields := make([]any, 0, len(params))
 
 	for _, it := range params {
@@ -206,26 +207,26 @@ func loggerExtraFieldContext(entry *log.Entry, msg string, params ...any) *log.E
 
 // I logging info message
 func I(msg string, params ...any) {
-	loggerExtraFieldContext(loggerInfo.Info(), msg, params...)
+	LogWithExtraFields(LoggerInfo.Info(), msg, params...)
 }
 
 // W logging warning message
 func W(msg string, params ...any) {
-	loggerExtraFieldContext(loggerWarn.Warn(), msg, params...)
+	LogWithExtraFields(LoggerWarn.Warn(), msg, params...)
 }
 
 // E logging info message
 func E(msg string, err error, params ...any) {
-	entry := loggerError.Error().Err(err)
-	loggerExtraFieldContext(entry, msg, params...)
+	entry := LoggerError.Error().Err(err)
+	LogWithExtraFields(entry, msg, params...)
 }
 
 // F logging info message
 func F(msg string, params ...any) {
-	loggerExtraFieldContext(loggerError.Fatal(), msg, params...)
+	LogWithExtraFields(LoggerError.Fatal(), msg, params...)
 }
 
 // D logging info message
 func D(msg string, params ...any) {
-	loggerExtraFieldContext(loggerDebug.Debug(), msg, params...)
+	LogWithExtraFields(loggerDebug.Debug(), msg, params...)
 }
