@@ -4,9 +4,9 @@ import (
 	"sort"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/xid"
-	"github.com/valyala/fastjson"
+
+	sonic "github.com/bytedance/sonic"
 )
 
 // 基础字段
@@ -31,7 +31,7 @@ type BasicFields struct {
 
 // Dump to bytes
 func (item BasicFields) Dump() []byte {
-	raw, err := jsoniter.Marshal(item)
+	raw, err := sonic.ConfigStd.Marshal(item)
 	if err != nil {
 		E("json unmarshal error", err)
 	}
@@ -49,21 +49,6 @@ func NewBasicFields() BasicFields {
 		Removed:  false,
 		Info:     H{},
 	}
-}
-
-// LoadBasicFields load with default fields
-func LoadBasicFields(i any, value *fastjson.Value) {
-	x, ok := i.(*BasicFields)
-	if !ok {
-		return
-	}
-
-	x.ID = String(value.GetStringBytes("id"))
-	x.TSCreate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_create")))
-	x.TSUpdate, _ = time.Parse(time.RFC3339Nano, String(value.GetStringBytes("ts_update")))
-	x.Removed = value.GetBool("removed")
-
-	_ = jsoniter.Unmarshal(value.GetStringBytes("info"), &x.Info)
 }
 
 func init() {

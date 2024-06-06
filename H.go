@@ -1,8 +1,7 @@
 package core
 
 import (
-	"database/sql/driver"
-	jsoniter "github.com/json-iterator/go"
+	sonic "github.com/bytedance/sonic"
 )
 
 // H alias map[string]any
@@ -19,14 +18,9 @@ func (h H) Fields() map[string]any {
 	return m
 }
 
-// Value implement driver.Valuer
-func (h H) Value() (driver.Value, error) {
-	return jsoniter.MarshalToString(h)
-}
-
 func (h H) LoadsString(src string) error {
-	return jsoniter.UnmarshalFromString(src, &h)
+	return sonic.ConfigStd.UnmarshalFromString(src, &h)
 }
 func (h H) LoadsBytes(src []byte) error {
-	return jsoniter.Unmarshal(src, &h)
+	return sonic.ConfigStd.Unmarshal(src, &h)
 }

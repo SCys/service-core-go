@@ -3,8 +3,8 @@ package core
 import (
 	"strings"
 
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/rs/xid"
 )
 
@@ -22,7 +22,7 @@ func FiberJSONError(ctx *fiber.Ctx, code int, _err error) (err error) {
 
 // FiberJSON 输出JSON
 func FiberJSON(ctx *fiber.Ctx, data H) (err error) {
-	content, err := jsoniter.Marshal(H{"data": data})
+	content, err := sonic.ConfigStd.Marshal(H{"data": data})
 	if err != nil {
 		return
 	}

@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 
-	jsoniter "github.com/json-iterator/go"
+	sonic "github.com/bytedance/sonic"
 )
 
 // ErrInvalidParams http 400 error code
@@ -32,7 +32,7 @@ var ErrPaymentRequired = errors.New("payment required")
 
 // JSONError return json data struct
 func JSONError(code int, err error) ([]byte, error) {
-	return jsoniter.Marshal(H{
+	return sonic.ConfigStd.Marshal(H{
 		"error": H{
 			"code":    code,
 			"message": err.Error(),
