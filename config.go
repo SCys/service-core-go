@@ -4,25 +4,51 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-var Config *ini.File
+type Config struct {
+	Path string `json:"path"`
 
-func LoadConfig(filename string) (*ini.File, error) {
+	file *ini.File
+}
+
+func (cfg *Config) Reload() {
+	if cfg.file != nil {
+		cfg.file.Reload()
+	}
+}
+
+func (cfg *Config) GetSection(section string) *ini.Section {
+	return cfg.file.Section(section)
+}
+
+func (cfg *Config) GetKey(section, key string) *ini.Key {
+	return cfg.file.Section(section).Key(key)
+}
+
+var globalConfig *Config
+
+func InitGlobalConfig(path string) error {
 	var err error
 
-	if Config == nil {
-		Config, err = ini.Load(filename)
-		if err != nil {
-			E("load config error", err)
-			return nil, err
-		}
+	globalConfig = &Config{Path: path}
 
-		I("load config success", H{"path": filename})
-	} else {
-		err := Config.Reload()
-		if err != nil {
-			W("reload config error", err)
-		}
+	globalConfig.file, err = ini.Load(path)
+	if err != nil {
+		E("load config error", err)
+		return err
 	}
 
-	return Config, nil
+	I("load config success", H{"path": path})
+	return nil
+}
+
+func GetGlobalKey(section, key string) *ini.Key {
+	if globalConfig != nil {
+		return globalConfig.file.Section(section).Key(key)
+	}
+
+	return nil
+}
+
+func GetGlobalConfig() *Config {
+	return globalConfig
 }
