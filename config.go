@@ -37,7 +37,9 @@ func InitGlobalConfig(path string) error {
 		return err
 	}
 
-	I("load config success", H{"path": path})
+	InitLog()
+
+	I("load config success:%s", path)
 	return nil
 }
 
