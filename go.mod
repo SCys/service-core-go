@@ -1,6 +1,7 @@
 module github.com/scys/service-core-go
 
 go 1.23
+toolchain go1.24.1
 
 require (
 	github.com/bytedance/sonic v1.12.2
@@ -41,10 +42,10 @@ require (
 	github.com/valyala/fasthttp v1.55.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/arch v0.10.0 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/text v0.18.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
