@@ -39,12 +39,12 @@ func LogWithExtraFields(entry *logrus.Entry, msg string, params ...any) {
 		case context.Context:
 			for _, key := range LSupportExtraFields {
 				if value, ok := v.Value(key).(string); ok {
-					entry.WithField(key, value)
+					entry = entry.WithField(key, value)
 				}
 			}
 
 			if user, ok := v.Value("user").(BasicFields); ok {
-				entry.WithField("user", user.ID)
+				entry = entry.WithField("user", user.ID)
 			}
 
 			if s, ok := v.Value("api").(string); ok {
@@ -59,10 +59,18 @@ func LogWithExtraFields(entry *logrus.Entry, msg string, params ...any) {
 			}
 
 			entry = entry.WithContext(v)
-			params = params[idx+1:]
+			if idx+1 < len(params) {
+				params = params[idx+1:]
+			} else {
+				params = params[:0]
+			}
 		case H:
 			entry = entry.WithFields(logrus.Fields(v))
-			params = params[idx+1:]
+			if idx+1 < len(params) {
+				params = params[idx+1:]
+			} else {
+				params = params[:0]
+			}
 		}
 	}
 
