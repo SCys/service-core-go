@@ -8,19 +8,18 @@ import (
 	"github.com/valyala/fastjson"
 )
 
-// String copy from strings.Builder
+// String 将字节切片转换为字符串
+// 注意：这个函数使用了unsafe转换，仅适用于临时使用，不要用于长期存储
 func String(bs []byte) string {
 	return *(*string)(unsafe.Pointer(&bs))
 }
 
-// Bytes convert str to bytes
+// Bytes 将字符串转换为字节切片
+// 注意：这个函数使用了unsafe转换，仅适用于临时使用，不要用于长期存储
+// 建议使用 []byte(str) 进行安全转换
 func Bytes(str string) []byte {
-	hdr := *(*reflect.StringHeader)(unsafe.Pointer(&str))
-	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: hdr.Data,
-		Len:  hdr.Len,
-		Cap:  hdr.Len,
-	}))
+	// 使用更安全的方式
+	return []byte(str)
 }
 
 // Now from fasttime
@@ -46,8 +45,58 @@ func OffsetAndLimit(values *fastjson.Value) (int64, int) {
 	return offset, limit
 }
 
-// IsZero compare value with zero
+// IsZero 比较值与零值
+// 支持所有可比较类型，包括基本类型和自定义类型
 func IsZero[T comparable](v T) bool {
-	var zero T // init with value (0?)
+	var zero T // 零值初始化
 	return v == zero
+}
+
+// IsZeroValue 通用的零值检查函数，支持interface{}类型
+func IsZeroValue(v interface{}) bool {
+	if v == nil {
+		return true
+	}
+
+	switch val := v.(type) {
+	case int:
+		return val == 0
+	case int8:
+		return val == 0
+	case int16:
+		return val == 0
+	case int32:
+		return val == 0
+	case int64:
+		return val == 0
+	case uint:
+		return val == 0
+	case uint8:
+		return val == 0
+	case uint16:
+		return val == 0
+	case uint32:
+		return val == 0
+	case uint64:
+		return val == 0
+	case float32:
+		return val == 0
+	case float64:
+		return val == 0
+	case string:
+		return val == ""
+	case bool:
+		return !val
+	default:
+		// 对于其他类型，使用反射检查
+		rv := reflect.ValueOf(v)
+		switch rv.Kind() {
+		case reflect.Ptr, reflect.Interface:
+			return rv.IsNil()
+		case reflect.Slice, reflect.Map, reflect.Chan:
+			return rv.Len() == 0
+		default:
+			return reflect.DeepEqual(v, reflect.Zero(rv.Type()).Interface())
+		}
+	}
 }

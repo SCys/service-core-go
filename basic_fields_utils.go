@@ -77,10 +77,14 @@ func basicFieldsGenFieldsAndArguments[T BasicFieldsInterface](target T) ([]any, 
 
 		name := strings.Split(tag, ",")[0]
 
+		// 修复指针类型字段处理
 		if isPointer {
-			fields = append(fields, v.Addr().Interface())
+			// 对于指针类型，我们需要获取字段的地址
+			fieldAddr := targetValue.Field(i).Addr()
+			fields = append(fields, fieldAddr.Interface())
 		} else {
-			fields = append(fields, v.Interface())
+			// 对于值类型，直接获取字段值
+			fields = append(fields, targetValue.Field(i).Interface())
 		}
 		arguments = append(arguments, name)
 	}

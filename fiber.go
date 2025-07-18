@@ -32,14 +32,14 @@ func FiberJSON(ctx *fiber.Ctx, data H) (err error) {
 	return
 }
 
-// FiberIP 获取请求IP， X-Real-IP > X-Forward-Forr > fiber.Ctx.IP
+// FiberIP 获取请求IP， X-Real-IP > X-Forwarded-For > fiber.Ctx.IP
 func FiberIP(ctx *fiber.Ctx) string {
 	addr := ctx.Get("X-Real-IP")
 	if addr != "" {
 		return addr
 	}
 
-	addr = ctx.Get("X-Forward-For")
+	addr = ctx.Get("X-Forwarded-For")
 	if addr != "" {
 		items := strings.Split(addr, ",")
 		if len(items) > 1 {

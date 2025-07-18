@@ -13,6 +13,7 @@ import (
 var (
 	LSupportExtraFields = []string{"client_ip", "_id"} // extra fields that can be added to the log entry
 	LMain               = logrus.New()                 // main logger
+	LogPath             = "./log/main.log"             // 日志文件路径，可配置
 )
 
 func InitLog() {
@@ -20,16 +21,21 @@ func InitLog() {
 	LMain.SetLevel(logrus.DebugLevel)
 	LMain.SetFormatter(&logrus.TextFormatter{})
 
+	// 确保日志目录存在
+	logDir := "./log"
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		LMain.WithError(err).Error("Failed to create log directory")
+	}
+
 	// os multi writer
 	mw := io.MultiWriter(os.Stdout, &lumberjack.Logger{
-		Filename:   "./log/main.log",
+		Filename:   LogPath,
 		MaxSize:    50, // megabytes
 		MaxBackups: 3,
 		MaxAge:     30,   //days
 		Compress:   true, // disabled by default
 	})
 	LMain.SetOutput(mw)
-
 }
 
 // LogWithExtraFields adds extra fields to a log entry based on the provided parameters.
