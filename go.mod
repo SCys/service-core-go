@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/bytedance/sonic v1.13.3
-	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/gofiber/fiber/v2 v2.52.11
 	github.com/gojek/heimdall/v7 v7.0.3
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/rs/xid v1.6.0
